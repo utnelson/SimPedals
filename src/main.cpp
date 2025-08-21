@@ -26,8 +26,8 @@ const int clutchMax = 693;
 const int throttleMin = 619;
 const int throttleMax = 770;
 
-const long brakeMin = 46400;
-const long brakeMax = 180000;
+const long brakeMin = 90000;
+const long brakeMax = 140000;
 
 // ⚙️ Deadzone in beiden Richtungen um 0
 const int deadzone = 20;
