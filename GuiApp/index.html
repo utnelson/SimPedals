@@ -260,6 +260,13 @@
               <div>Brake: <span id="brakeRaw">0</span></div>
             </div>
           </div>
+          <div
+            class="mt-4 bg-gray-800 p-2 rounded-lg overflow-auto max-h-40 text-white"
+            id="serialMonitor"
+          >
+            <h3 class="mb-2">Serial Monitor</h3>
+            <div id="serialContent" class="text-xs font-mono"></div>
+          </div>
         </div>
       </div>
 
@@ -332,7 +339,12 @@
             labels: [],
             datasets: [
               { label: "Clutch", data: [], borderColor: "red", fill: false },
-              { label: "Throttle", data: [], borderColor: "green", fill: false },
+              {
+                label: "Throttle",
+                data: [],
+                borderColor: "green",
+                fill: false,
+              },
               { label: "Brake", data: [], borderColor: "blue", fill: false },
             ],
           },
@@ -419,13 +431,18 @@
           } else {
             calibrating = false;
             calibrateBtn.textContent = "Calibrate";
-            calibrateBtn.classList.remove("bg-yellow-400", "hover:bg-yellow-500");
+            calibrateBtn.classList.remove(
+              "bg-yellow-400",
+              "hover:bg-yellow-500"
+            );
             calibrateBtn.classList.add("bg-white", "hover:bg-gray-100");
 
             document.getElementById("clutchMin").value = calibData.clutchMin;
             document.getElementById("clutchMax").value = calibData.clutchMax;
-            document.getElementById("throttleMin").value = calibData.throttleMin;
-            document.getElementById("throttleMax").value = calibData.throttleMax;
+            document.getElementById("throttleMin").value =
+              calibData.throttleMin;
+            document.getElementById("throttleMax").value =
+              calibData.throttleMax;
             document.getElementById("brakeMin").value = calibData.brakeMin;
             document.getElementById("brakeMax").value = calibData.brakeMax;
 
@@ -447,10 +464,23 @@
           let lines = serialBuffer.split("\n");
           serialBuffer = lines.pop();
 
+          const serialContent = document.getElementById("serialContent");
+
           lines.forEach((line) => {
             line = line.trim();
             if (!line) return;
 
+            // ------------------- Serial Monitor (neueste oben) -------------------
+            const lineEl = document.createElement("div");
+            lineEl.textContent = line;
+            serialContent.insertBefore(lineEl, serialContent.firstChild);
+
+            // max. 200 Zeilen behalten
+            if (serialContent.children.length > 200) {
+              serialContent.removeChild(serialContent.lastChild);
+            }
+
+            // ------------------- Datenverarbeitung -------------------
             const values = line.split(",");
 
             if (values.length === 13) {
@@ -484,8 +514,14 @@
               document.getElementById("SCK_PIN").value = SCK_PIN;
               document.getElementById("brakeSmoothing").value = brakeSmoothing;
             } else if (values.length === 6) {
-              const [clutchRaw, throttleRaw, brakeRaw, clutch, throttle, brake] =
-                values.map((v) => parseInt(v));
+              const [
+                clutchRaw,
+                throttleRaw,
+                brakeRaw,
+                clutch,
+                throttle,
+                brake,
+              ] = values.map((v) => parseInt(v));
               addData(clutch, throttle, brake);
               document.getElementById("clutchRaw").textContent = clutchRaw;
               document.getElementById("throttleRaw").textContent = throttleRaw;
@@ -493,8 +529,14 @@
 
               if (calibrating) {
                 if (!isNaN(clutchRaw)) {
-                  calibData.clutchMin = Math.min(calibData.clutchMin, clutchRaw);
-                  calibData.clutchMax = Math.max(calibData.clutchMax, clutchRaw);
+                  calibData.clutchMin = Math.min(
+                    calibData.clutchMin,
+                    clutchRaw
+                  );
+                  calibData.clutchMax = Math.max(
+                    calibData.clutchMax,
+                    clutchRaw
+                  );
                 }
                 if (!isNaN(throttleRaw)) {
                   calibData.throttleMin = Math.min(
@@ -518,12 +560,12 @@
 
         connectBtn.onclick = connect;
         document.getElementById("loadBtn").onclick = () => {
-  send("LOAD");
-  // kleinen Moment warten, bis Arduino geantwortet hat
-  setTimeout(() => {
-    send("SET DebugMode 1");
-  }, 200);
-};
+          send("LOAD");
+          // kleinen Moment warten, bis Arduino geantwortet hat
+          setTimeout(() => {
+            send("SET DebugMode 1");
+          }, 200);
+        };
       </script>
     </div>
   </body>
