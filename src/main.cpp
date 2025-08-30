@@ -23,7 +23,6 @@ Joystick_ Joystick(JOYSTICK_DEFAULT_REPORT_ID,
 
 struct Config
 {
-  bool debugMode;
   int16_t clutchMin;
   int16_t clutchMax;
   int16_t throttleMin;
@@ -35,12 +34,10 @@ struct Config
   int16_t pinThrottle;
   int16_t DT_PIN;
   int16_t SCK_PIN;
-  int16_t brakeSmoothing; // neu: Glättungsfaktor für Bremse
 } config;
 
 // 🔧 Defaultwerte
 Config defaultConfig = {
-    true,        // debugMode
     0, 800,      // clutchMin, clutchMax
     0, 800,      // throttleMin, throttleMax
     0L, 200000L, // brakeMin, brakeMax
@@ -49,7 +46,6 @@ Config defaultConfig = {
     A1,          // pinThrottle
     5,           // DT_PIN
     4,           // SCK_PIN
-    10           // brakeSmoothing (10% neu, 90% alt)
 };
 
 #define MAGIC_BYTE_ADDR 0
@@ -69,7 +65,6 @@ void loadConfig()
 {
   if (EEPROM.read(MAGIC_BYTE_ADDR) != MAGIC_BYTE_VAL)
   {
-    // EEPROM leer → Default laden
     config = defaultConfig;
     EEPROM.write(MAGIC_BYTE_ADDR, MAGIC_BYTE_VAL);
     EEPROM.put(MAGIC_BYTE_ADDR + 1, config);
@@ -84,21 +79,28 @@ void loadConfig()
 
 void printConfig()
 {
-  Serial.print(config.debugMode ? "1" : "0"); Serial.print(",");
-  Serial.print(config.clutchMin); Serial.print(",");
-  Serial.print(config.clutchMax); Serial.print(",");
-  Serial.print(config.throttleMin); Serial.print(",");
-  Serial.print(config.throttleMax); Serial.print(",");
-  Serial.print(config.brakeMin); Serial.print(",");
-  Serial.print(config.brakeMax); Serial.print(",");
-  Serial.print(config.deadzone); Serial.print(",");
-  Serial.print(config.pinClutch); Serial.print(",");
-  Serial.print(config.pinThrottle); Serial.print(",");
-  Serial.print(config.DT_PIN); Serial.print(",");
-  Serial.print(config.SCK_PIN); Serial.print(",");
-  Serial.println(config.brakeSmoothing); // \n am Ende
+  Serial.print(config.clutchMin);
+  Serial.print(",");
+  Serial.print(config.clutchMax);
+  Serial.print(",");
+  Serial.print(config.throttleMin);
+  Serial.print(",");
+  Serial.print(config.throttleMax);
+  Serial.print(",");
+  Serial.print(config.brakeMin);
+  Serial.print(",");
+  Serial.print(config.brakeMax);
+  Serial.print(",");
+  Serial.print(config.deadzone);
+  Serial.print(",");
+  Serial.print(config.pinClutch);
+  Serial.print(",");
+  Serial.print(config.pinThrottle);
+  Serial.print(",");
+  Serial.print(config.DT_PIN);
+  Serial.print(",");
+  Serial.println(config.SCK_PIN);
 }
-
 
 int applyDeadzone(int value, int center, int width)
 {
@@ -109,6 +111,10 @@ int applyDeadzone(int value, int center, int width)
 
 // 🔹 Glättungsspeicher für die Bremse
 float brakeFiltered = 0;
+
+unsigned long lastPrint = 0;
+unsigned long lastHX711 = 0;
+long brakeRaw = 0;
 
 void setup()
 {
@@ -124,29 +130,28 @@ void setup()
 
 void loop()
 {
+  unsigned long now = millis();
+
   // 🔹 Serielle Befehle
   if (Serial.available())
   {
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
 
-    if (cmd == "LOAD"){
+    if (cmd == "LOAD")
+    {
       loadConfig();
-      config.debugMode = true; // Debug direkt aktivieren
+      scale.begin(config.DT_PIN, config.SCK_PIN);
     }
     else if (cmd == "SAVE")
       saveConfig();
-    else if (cmd == "PRINT")
-      printConfig();
     else if (cmd.startsWith("SET"))
     {
       int sep = cmd.indexOf(' ', 4);
       String key = cmd.substring(4, sep);
       long val = cmd.substring(sep + 1).toInt();
 
-      if (key == "DebugMode")
-        config.debugMode = (val != 0);
-      else if (key == "clutchMin")
+      if (key == "clutchMin")
         config.clutchMin = val;
       else if (key == "clutchMax")
         config.clutchMax = val;
@@ -165,11 +170,15 @@ void loop()
       else if (key == "pinThrottle")
         config.pinThrottle = val;
       else if (key == "DT_PIN")
+      {
         config.DT_PIN = val;
+        scale.begin(config.DT_PIN, config.SCK_PIN);
+      }
       else if (key == "SCK_PIN")
+      {
         config.SCK_PIN = val;
-      else if (key == "brakeSmoothing")
-        config.brakeSmoothing = val;
+        scale.begin(config.DT_PIN, config.SCK_PIN);
+      }
 
       Serial.print("✅ ");
       Serial.print(key);
@@ -178,14 +187,21 @@ void loop()
     }
   }
 
+  // 🔹 HX711 alle 20ms lesen (non-blocking)
+  if (now - lastHX711 > 20)
+  {
+    lastHX711 = now;
+    if (scale.is_ready())
+      brakeRaw = scale.read();
+  }
+
   // 🔹 Rohwerte einlesen
   int clutchRaw = analogRead(config.pinClutch);
   int throttleRaw = analogRead(config.pinThrottle);
-  long brakeRaw = scale.read();
 
   int clutch = map(constrain(clutchRaw, config.clutchMin, config.clutchMax), config.clutchMin, config.clutchMax, 0, 1023);
   int throttle = map(constrain(throttleRaw, config.throttleMin, config.throttleMax), config.throttleMin, config.throttleMax, 0, 1023);
-  int brake = map(constrain((long)brakeRaw, config.brakeMin, config.brakeMax), config.brakeMin, config.brakeMax, 0, 1023);
+  int brake = map(constrain(brakeRaw, config.brakeMin, config.brakeMax), config.brakeMin, config.brakeMax, 0, 1023);
 
   clutch = applyDeadzone(clutch, 0, config.deadzone);
   throttle = applyDeadzone(throttle, 0, config.deadzone);
@@ -195,8 +211,10 @@ void loop()
   Joystick.setThrottle(throttle);
   Joystick.setBrake(brake);
 
-  if (config.debugMode)
+  // 🔹 Serial-Ausgabe alle 20ms
+  if (now - lastPrint > 20)
   {
+    lastPrint = now;
     Serial.print(clutchRaw);
     Serial.print(',');
     Serial.print(throttleRaw);
@@ -209,5 +227,4 @@ void loop()
     Serial.print(',');
     Serial.println(brake);
   }
-
 }

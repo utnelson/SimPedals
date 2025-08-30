@@ -50,17 +50,7 @@
         <div
           class="flex-1 bg-gray-600 p-4 rounded-lg shadow-lg overflow-auto max-h-[60vh]"
         >
-          <!-- DebugMode Checkbox -->
-          <div class="flex items-center mb-2">
-            <label for="DebugMode" class="text-white w-32">DebugMode:</label>
-            <input type="checkbox" id="DebugMode" class="mr-2" />
-            <button
-              onclick="setVal('DebugMode')"
-              class="px-2 py-1 bg-gray-200 rounded"
-            >
-              Set
-            </button>
-          </div>
+
 
           <!-- Clutch -->
           <div class="clutch mb-4">
@@ -483,9 +473,8 @@
             // ------------------- Datenverarbeitung -------------------
             const values = line.split(",");
 
-            if (values.length === 13) {
+            if (values.length === 11) {
               const [
-                debugMode,
                 clutchMin,
                 clutchMax,
                 throttleMin,
@@ -497,10 +486,8 @@
                 pinThrottle,
                 DT_PIN,
                 SCK_PIN,
-                brakeSmoothing,
               ] = values.map((v) => parseInt(v));
 
-              document.getElementById("DebugMode").checked = debugMode === 1;
               document.getElementById("clutchMin").value = clutchMin;
               document.getElementById("clutchMax").value = clutchMax;
               document.getElementById("throttleMin").value = throttleMin;
@@ -512,7 +499,6 @@
               document.getElementById("pinThrottle").value = pinThrottle;
               document.getElementById("DT_PIN").value = DT_PIN;
               document.getElementById("SCK_PIN").value = SCK_PIN;
-              document.getElementById("brakeSmoothing").value = brakeSmoothing;
             } else if (values.length === 6) {
               const [
                 clutchRaw,
@@ -561,10 +547,7 @@
         connectBtn.onclick = connect;
         document.getElementById("loadBtn").onclick = () => {
           send("LOAD");
-          // kleinen Moment warten, bis Arduino geantwortet hat
-          setTimeout(() => {
-            send("SET DebugMode 1");
-          }, 200);
+
         };
       </script>
     </div>
