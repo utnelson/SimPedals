@@ -130,8 +130,10 @@ void loop()
     String cmd = Serial.readStringUntil('\n');
     cmd.trim();
 
-    if (cmd == "LOAD")
+    if (cmd == "LOAD"){
       loadConfig();
+      config.debugMode = true; // Debug direkt aktivieren
+    }
     else if (cmd == "SAVE")
       saveConfig();
     else if (cmd == "PRINT")

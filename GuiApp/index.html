@@ -34,14 +34,7 @@
         >
           Save
         </button>
-        <!--
-        <button
-          onclick="send('PRINT')"
-          class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700"
-        >
-          Show
-        </button>
-        -->
+
         <!-- Calibrate Button -->
         <button
           id="calibrateBtn"
@@ -106,9 +99,7 @@
           <div class="throttle mb-4">
             <h3 class="text-white font-semibold mb-1">Throttle</h3>
             <div class="flex items-center mb-2">
-              <label for="throttleMin" class="text-white w-32"
-                >Min:</label
-              >
+              <label for="throttleMin" class="text-white w-32">Min:</label>
               <input
                 type="number"
                 id="throttleMin"
@@ -122,9 +113,7 @@
               </button>
             </div>
             <div class="flex items-center mb-2">
-              <label for="throttleMax" class="text-white w-32"
-                >Max:</label
-              >
+              <label for="throttleMax" class="text-white w-32">Max:</label>
               <input
                 type="number"
                 id="throttleMax"
@@ -170,28 +159,6 @@
                 Set
               </button>
             </div>
-            <!--
-            <div class="flex items-center mb-2">
-              <label for="brakeSmoothing" class="text-white w-32"
-                >Brake Smooth:</label
-              >
-              <input
-                type="number"
-                id="brakeSmoothing"
-                min="1"
-                max="100"
-                value="10"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('brakeSmoothing')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
-              
-            </div>
-            -->
           </div>
 
           <!-- Deadzone -->
@@ -279,7 +246,7 @@
 
         <!-- Diagram + Raw Values -->
         <div class="flex-1 bg-gray-600 p-4 rounded-lg shadow-lg">
-          <canvas class="bg-gray-700 text-white"  id="chart"></canvas>
+          <canvas class="bg-gray-700 text-white" id="chart"></canvas>
           <div
             class="mt-4 bg-gray-700 p-2 rounded-lg flex-col justify-around text-white"
             id="rawValues"
@@ -288,9 +255,9 @@
               <h3>Raw Values</h3>
             </div>
             <div class="flex justify-around">
-            <div>Clutch: <span id="clutchRaw">0</span></div>
-            <div>Throttle: <span id="throttleRaw">0</span></div>
-            <div>Brake: <span id="brakeRaw">0</span></div>
+              <div>Clutch: <span id="clutchRaw">0</span></div>
+              <div>Throttle: <span id="throttleRaw">0</span></div>
+              <div>Brake: <span id="brakeRaw">0</span></div>
             </div>
           </div>
         </div>
@@ -302,7 +269,6 @@
         let connected = false;
         const connectBtn = document.getElementById("connect");
 
-        // 🔹 Puffer für unvollständige Serial-Daten
         let serialBuffer = "";
 
         // ------------------- Verbindung -------------------
@@ -322,7 +288,6 @@
               connectBtn.classList.remove("bg-green-600");
               connectBtn.classList.add("bg-red-600");
 
-              // 🔹 Lese-Loop
               (async function readLoop() {
                 while (connected) {
                   const { value, done } = await reader.read();
@@ -345,9 +310,8 @@
           }
         }
 
-        // ------------------- Daten senden -------------------
         async function send(cmd) {
-          if (!writer) return alert("Nicht verbunden!");
+          if (!writer) return;
           const encoder = new TextEncoder();
           await writer.write(encoder.encode(cmd + "\n"));
         }
@@ -362,40 +326,36 @@
 
         // ------------------- Chart.js -------------------
         const ctx = document.getElementById("chart").getContext("2d");
-const chart = new Chart(ctx, {
-  type: "line",
-  data: {
-    labels: [],
-    datasets: [
-      { label: "Clutch", data: [], borderColor: "red", fill: false },
-      { label: "Throttle", data: [], borderColor: "green", fill: false },
-      { label: "Brake", data: [], borderColor: "blue", fill: false },
-    ],
-  },
-  options: {
-    animation: false,
-    responsive: true,
-    plugins: {
-      legend: {
-        labels: {
-          color: "white" // Legendentext weiß
-        }
-      }
-    },
-    scales: {
-      x: {
-        ticks: { color: "white" },        // X-Achse Labels
-        grid: { color: "rgba(255,255,255,0.2)" } // Gitterlinien optional
-      },
-      y: {
-        min: 0,
-        max: 1023,
-        ticks: { color: "white" },        // Y-Achse Labels
-        grid: { color: "rgba(255,255,255,0.2)" }
-      }
-    }
-  },
-});
+        const chart = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              { label: "Clutch", data: [], borderColor: "red", fill: false },
+              { label: "Throttle", data: [], borderColor: "green", fill: false },
+              { label: "Brake", data: [], borderColor: "blue", fill: false },
+            ],
+          },
+          options: {
+            animation: false,
+            responsive: true,
+            plugins: {
+              legend: { labels: { color: "white" } },
+            },
+            scales: {
+              x: {
+                ticks: { color: "white" },
+                grid: { color: "rgba(255,255,255,0.2)" },
+              },
+              y: {
+                min: 0,
+                max: 1023,
+                ticks: { color: "white" },
+                grid: { color: "rgba(255,255,255,0.2)" },
+              },
+            },
+          },
+        });
 
         function addData(clutch, throttle, brake) {
           chart.data.labels.push("");
@@ -423,9 +383,26 @@ const chart = new Chart(ctx, {
         const calibrateBtn = document.getElementById("calibrateBtn");
         const rawDiv = document.getElementById("rawValues");
 
+        const calibStatus = document.createElement("div");
+        calibStatus.className =
+          "mt-2 bg-gray-600 p-2 rounded text-white text-sm";
+        rawDiv.appendChild(calibStatus);
+
+        function updateCalibStatus() {
+          if (!calibrating) {
+            calibStatus.innerHTML = "";
+            return;
+          }
+          calibStatus.innerHTML = `
+            <strong>Calibration Live:</strong><br>
+            Clutch Min: ${calibData.clutchMin}, Max: ${calibData.clutchMax}<br>
+            Throttle Min: ${calibData.throttleMin}, Max: ${calibData.throttleMax}<br>
+            Brake Min: ${calibData.brakeMin}, Max: ${calibData.brakeMax}
+          `;
+        }
+
         calibrateBtn.onclick = () => {
           if (!calibrating) {
-            // Starte Kalibrierung
             calibrating = true;
             calibData = {
               clutchMin: Infinity,
@@ -436,41 +413,31 @@ const chart = new Chart(ctx, {
               brakeMax: -Infinity,
             };
             calibrateBtn.textContent = "Stop Calibrate";
-            alert(
-              "Fahre nun die Pedale vollständig durch, um Min/Max-Werte zu erfassen."
-            );
+            calibrateBtn.classList.remove("bg-white", "hover:bg-gray-100");
+            calibrateBtn.classList.add("bg-yellow-400", "hover:bg-yellow-500");
+            updateCalibStatus();
           } else {
-            // Stoppe Kalibrierung
             calibrating = false;
             calibrateBtn.textContent = "Calibrate";
+            calibrateBtn.classList.remove("bg-yellow-400", "hover:bg-yellow-500");
+            calibrateBtn.classList.add("bg-white", "hover:bg-gray-100");
 
-            // Werte im Div anzeigen
-            rawDiv.innerHTML += `
-      <div class="mt-2 bg-gray-600 p-2 rounded text-white">
-        <strong>Calibration:</strong><br>
-        Clutch Min: ${calibData.clutchMin}, Max: ${calibData.clutchMax}<br>
-        Throttle Min: ${calibData.throttleMin}, Max: ${calibData.throttleMax}<br>
-        Brake Min: ${calibData.brakeMin}, Max: ${calibData.brakeMax}
-      </div>
-    `;
+            document.getElementById("clutchMin").value = calibData.clutchMin;
+            document.getElementById("clutchMax").value = calibData.clutchMax;
+            document.getElementById("throttleMin").value = calibData.throttleMin;
+            document.getElementById("throttleMax").value = calibData.throttleMax;
+            document.getElementById("brakeMin").value = calibData.brakeMin;
+            document.getElementById("brakeMax").value = calibData.brakeMax;
 
-            // Frage, ob gespeichert werden soll
-            if (
-              confirm(
-                "Möchtest du die gemessenen Min/Max-Werte in den EEPROM schreiben?"
-              )
-            ) {
-              // Sende SET-Befehle
-              send(`SET clutchMin ${calibData.clutchMin}`);
-              send(`SET clutchMax ${calibData.clutchMax}`);
-              send(`SET throttleMin ${calibData.throttleMin}`);
-              send(`SET throttleMax ${calibData.throttleMax}`);
-              send(`SET brakeMin ${calibData.brakeMin}`);
-              send(`SET brakeMax ${calibData.brakeMax}`);
-              // Speicher
-              send("SAVE");
-              alert("Werte wurden gespeichert!");
-            }
+            send(`SET clutchMin ${calibData.clutchMin}`);
+            send(`SET clutchMax ${calibData.clutchMax}`);
+            send(`SET throttleMin ${calibData.throttleMin}`);
+            send(`SET throttleMax ${calibData.throttleMax}`);
+            send(`SET brakeMin ${calibData.brakeMin}`);
+            send(`SET brakeMax ${calibData.brakeMax}`);
+            send("SAVE");
+
+            updateCalibStatus();
           }
         };
 
@@ -478,7 +445,7 @@ const chart = new Chart(ctx, {
         function parseSerial(msg) {
           serialBuffer += msg;
           let lines = serialBuffer.split("\n");
-          serialBuffer = lines.pop(); // letzte Zeile evtl. unvollständig
+          serialBuffer = lines.pop();
 
           lines.forEach((line) => {
             line = line.trim();
@@ -486,7 +453,6 @@ const chart = new Chart(ctx, {
 
             const values = line.split(",");
 
-            // --- Config-Zeile (13 Werte)
             if (values.length === 13) {
               const [
                 debugMode,
@@ -517,34 +483,18 @@ const chart = new Chart(ctx, {
               document.getElementById("DT_PIN").value = DT_PIN;
               document.getElementById("SCK_PIN").value = SCK_PIN;
               document.getElementById("brakeSmoothing").value = brakeSmoothing;
-            }
-
-            // --- Rohwerte für Diagramm
-            else if (values.length === 6) {
-              const [
-                clutchRaw,
-                throttleRaw,
-                brakeRaw,
-                clutch,
-                throttle,
-                brake,
-              ] = values.map((v) => parseInt(v));
+            } else if (values.length === 6) {
+              const [clutchRaw, throttleRaw, brakeRaw, clutch, throttle, brake] =
+                values.map((v) => parseInt(v));
               addData(clutch, throttle, brake);
               document.getElementById("clutchRaw").textContent = clutchRaw;
               document.getElementById("throttleRaw").textContent = throttleRaw;
               document.getElementById("brakeRaw").textContent = brakeRaw;
 
-              // --- Kalibrierung
               if (calibrating) {
                 if (!isNaN(clutchRaw)) {
-                  calibData.clutchMin = Math.min(
-                    calibData.clutchMin,
-                    clutchRaw
-                  );
-                  calibData.clutchMax = Math.max(
-                    calibData.clutchMax,
-                    clutchRaw
-                  );
+                  calibData.clutchMin = Math.min(calibData.clutchMin, clutchRaw);
+                  calibData.clutchMax = Math.max(calibData.clutchMax, clutchRaw);
                 }
                 if (!isNaN(throttleRaw)) {
                   calibData.throttleMin = Math.min(
@@ -560,14 +510,20 @@ const chart = new Chart(ctx, {
                   calibData.brakeMin = Math.min(calibData.brakeMin, brakeRaw);
                   calibData.brakeMax = Math.max(calibData.brakeMax, brakeRaw);
                 }
+                updateCalibStatus();
               }
             }
           });
         }
 
-        // ------------------- Button Events -------------------
         connectBtn.onclick = connect;
-        document.getElementById("loadBtn").onclick = () => send("LOAD");
+        document.getElementById("loadBtn").onclick = () => {
+  send("LOAD");
+  // kleinen Moment warten, bis Arduino geantwortet hat
+  setTimeout(() => {
+    send("SET DebugMode 1");
+  }, 200);
+};
       </script>
     </div>
   </body>
