@@ -50,104 +50,72 @@
         <div
           class="flex-1 bg-gray-600 p-4 rounded-lg shadow-lg overflow-auto max-h-[60vh]"
         >
-
-
-          <!-- Clutch -->
-          <div class="clutch mb-4">
-            <h3 class="text-white font-semibold mb-1">Clutch</h3>
-            <div class="flex items-center mb-2">
-              <label for="clutchMin" class="text-white w-32">Min:</label>
-              <input
-                type="number"
-                id="clutchMin"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('clutchMin')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
-            </div>
-            <div class="flex items-center mb-2">
-              <label for="clutchMax" class="text-white w-32">Max:</label>
-              <input
-                type="number"
-                id="clutchMax"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('clutchMax')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
-            </div>
-          </div>
-
           <!-- Throttle -->
           <div class="throttle mb-4">
             <h3 class="text-white font-semibold mb-1">Throttle</h3>
-            <div class="flex items-center mb-2">
-              <label for="throttleMin" class="text-white w-32">Min:</label>
-              <input
-                type="number"
-                id="throttleMin"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('throttleMin')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
-            </div>
-            <div class="flex items-center mb-2">
-              <label for="throttleMax" class="text-white w-32">Max:</label>
-              <input
-                type="number"
-                id="throttleMax"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('throttleMax')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
+            <div class="flex">
+              <div class="flex items-center mb-2">
+                <label for="throttleMin" class="text-white p-2">Min:</label>
+                <input
+                  type="number"
+                  id="throttleMin"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
+              <div class="flex items-center mb-2">
+                <label for="throttleMax" class="text-white p-2">Max:</label>
+                <input
+                  type="number"
+                  id="throttleMax"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
             </div>
           </div>
 
           <!-- Brake -->
           <div class="brake mb-4">
             <h3 class="text-white font-semibold mb-1">Brake</h3>
-            <div class="flex items-center mb-2">
-              <label for="brakeMin" class="text-white w-32">Min:</label>
-              <input
-                type="number"
-                id="brakeMin"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('brakeMin')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
+            <div class="flex">
+              <div class="flex items-center mb-2">
+                <label for="brakeMin" class="text-white p-2">Min:</label>
+                <input
+                  type="number"
+                  id="brakeMin"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
+              <div class="flex items-center mb-2">
+                <label for="brakeMax" class="text-white p-2">Max:</label>
+                <input
+                  type="number"
+                  id="brakeMax"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
             </div>
-            <div class="flex items-center mb-2">
-              <label for="brakeMax" class="text-white w-32">Max:</label>
-              <input
-                type="number"
-                id="brakeMax"
-                class="mr-2 border rounded px-1"
-              />
-              <button
-                onclick="setVal('brakeMax')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
+          </div>
+
+          <!-- Clutch -->
+          <div class="clutch mb-4">
+            <h3 class="text-white font-semibold mb-1">Clutch</h3>
+            <div class="flex">
+              <div class="flex items-center mb-2">
+                <label for="clutchMin" class="text-white p-2">Min:</label>
+                <input
+                  type="number"
+                  id="clutchMin"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
+              <div class="flex items-center mb-2">
+                <label for="clutchMax" class="text-white p-2">Max:</label>
+                <input
+                  type="number"
+                  id="clutchMax"
+                  class="w-32 mr-2 border rounded px-1"
+                />
+              </div>
             </div>
           </div>
 
@@ -161,12 +129,6 @@
                 id="deadzone"
                 class="mr-2 border rounded px-1"
               />
-              <button
-                onclick="setVal('deadzone')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
             </div>
           </div>
 
@@ -180,12 +142,6 @@
                 id="pinClutch"
                 class="mr-2 border rounded px-1"
               />
-              <button
-                onclick="setVal('pinClutch')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
             </div>
             <div class="flex items-center mb-2">
               <label for="pinThrottle" class="text-white w-32"
@@ -196,12 +152,6 @@
                 id="pinThrottle"
                 class="mr-2 border rounded px-1"
               />
-              <button
-                onclick="setVal('pinThrottle')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
             </div>
             <div class="flex items-center mb-2">
               <label for="DT_PIN" class="text-white w-32">DT Pin:</label>
@@ -210,12 +160,6 @@
                 id="DT_PIN"
                 class="mr-2 border rounded px-1"
               />
-              <button
-                onclick="setVal('DT_PIN')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
             </div>
             <div class="flex items-center mb-2">
               <label for="SCK_PIN" class="text-white w-32">SCK Pin:</label>
@@ -224,13 +168,17 @@
                 id="SCK_PIN"
                 class="mr-2 border rounded px-1"
               />
-              <button
-                onclick="setVal('SCK_PIN')"
-                class="px-2 py-1 bg-gray-200 rounded"
-              >
-                Set
-              </button>
             </div>
+          </div>
+
+          <!-- Neuer Button "Set All" ganz unten -->
+          <div class="flex justify-center mt-4">
+            <button
+              id="setAllBtn"
+              class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700"
+            >
+              Set All
+            </button>
           </div>
         </div>
 
@@ -313,13 +261,28 @@
           await writer.write(encoder.encode(cmd + "\n"));
         }
 
-        function setVal(name) {
-          const el = document.getElementById(name);
-          let v;
-          if (el.type === "checkbox") v = el.checked ? 1 : 0;
-          else v = el.value;
-          send(`SET ${name} ${v}`);
-        }
+        // ------------------- Set All -------------------
+        document.getElementById("setAllBtn").onclick = () => {
+          const fields = [
+            "throttleMin",
+            "throttleMax",
+            "brakeMin",
+            "brakeMax",
+            "clutchMin",
+            "clutchMax",
+            "deadzone",
+            "pinClutch",
+            "pinThrottle",
+            "DT_PIN",
+            "SCK_PIN",
+          ];
+
+          fields.forEach((id) => {
+            const el = document.getElementById(id);
+            let value = el.value;
+            send(`SET ${id} ${value}`);
+          });
+        };
 
         // ------------------- Chart.js -------------------
         const ctx = document.getElementById("chart").getContext("2d");
@@ -341,9 +304,7 @@
           options: {
             animation: false,
             responsive: true,
-            plugins: {
-              legend: { labels: { color: "white" } },
-            },
+            plugins: { legend: { labels: { color: "white" } } },
             scales: {
               x: {
                 ticks: { color: "white" },
@@ -396,11 +357,11 @@
             return;
           }
           calibStatus.innerHTML = `
-            <strong>Calibration Live:</strong><br>
-            Clutch Min: ${calibData.clutchMin}, Max: ${calibData.clutchMax}<br>
-            Throttle Min: ${calibData.throttleMin}, Max: ${calibData.throttleMax}<br>
-            Brake Min: ${calibData.brakeMin}, Max: ${calibData.brakeMax}
-          `;
+    <strong>Calibration Live:</strong><br>
+    Clutch Min: ${calibData.clutchMin}, Max: ${calibData.clutchMax}<br>
+    Throttle Min: ${calibData.throttleMin}, Max: ${calibData.throttleMax}<br>
+    Brake Min: ${calibData.brakeMin}, Max: ${calibData.brakeMax}
+  `;
         }
 
         calibrateBtn.onclick = () => {
@@ -436,14 +397,18 @@
             document.getElementById("brakeMin").value = calibData.brakeMin;
             document.getElementById("brakeMax").value = calibData.brakeMax;
 
-            send(`SET clutchMin ${calibData.clutchMin}`);
-            send(`SET clutchMax ${calibData.clutchMax}`);
-            send(`SET throttleMin ${calibData.throttleMin}`);
-            send(`SET throttleMax ${calibData.throttleMax}`);
-            send(`SET brakeMin ${calibData.brakeMin}`);
-            send(`SET brakeMax ${calibData.brakeMax}`);
-            send("SAVE");
+            [
+              "clutchMin",
+              "clutchMax",
+              "throttleMin",
+              "throttleMax",
+              "brakeMin",
+              "brakeMax",
+            ].forEach((id) =>
+              send(`SET ${id} ${document.getElementById(id).value}`)
+            );
 
+            send("SAVE");
             updateCalibStatus();
           }
         };
@@ -460,19 +425,15 @@
             line = line.trim();
             if (!line) return;
 
-            // ------------------- Serial Monitor (neueste oben) -------------------
             const lineEl = document.createElement("div");
             lineEl.textContent = line;
             serialContent.insertBefore(lineEl, serialContent.firstChild);
 
-            // max. 200 Zeilen behalten
             if (serialContent.children.length > 200) {
               serialContent.removeChild(serialContent.lastChild);
             }
 
-            // ------------------- Datenverarbeitung -------------------
             const values = line.split(",");
-
             if (values.length === 11) {
               const [
                 clutchMin,
@@ -544,11 +505,11 @@
           });
         }
 
+        // ------------------- Button Events -------------------
         connectBtn.onclick = connect;
-        document.getElementById("loadBtn").onclick = () => {
-          send("LOAD");
-
-        };
+        document.getElementById("loadBtn").onclick = () => send("LOAD");
+        document.querySelector("button[onclick='send(\"SAVE\")']").onclick =
+          () => send("SAVE");
       </script>
     </div>
   </body>
