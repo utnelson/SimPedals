@@ -119,8 +119,6 @@ long brakeRaw = 0;
 void setup()
 {
   Serial.begin(115200);
-  while (!Serial)
-    ;
   loadConfig();
 
   // HX711 initialisieren
