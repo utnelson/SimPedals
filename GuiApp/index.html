@@ -6,7 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body class="h-screen flex items-center justify-center bg-gray-500">
-    <div class="w-full max-w-5xl bg-gray-700 p-6 rounded-lg shadow-lg">
+    <div class="w-full max-w-7xl bg-gray-700 p-8 rounded-lg shadow-lg">
       <h2 class="text-3xl text-white text-center font-bold underline mb-4">
         Calibration Tool for Sim Pedals
       </h2>
@@ -34,7 +34,13 @@
         >
           Save
         </button>
-
+        <button
+          onclick="send('RESETCONFIG')"
+          id="resetEEPROMBtn"
+          class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700"
+        >
+          Reset EEPROM
+        </button>
         <!-- Calibrate Button -->
         <button
           id="calibrateBtn"
@@ -48,131 +54,306 @@
       <div class="flex gap-6 mt-4">
         <!-- Fields -->
         <div
-          class="flex-1 bg-gray-600 p-4 rounded-lg shadow-lg overflow-auto max-h-[60vh]"
+          class="w-3/5 bg-gray-600 p-4 rounded-lg shadow-lg overflow-auto max-h-[80vh]"
         >
           <!-- Throttle -->
-          <div class="throttle mb-4">
-            <h3 class="text-white font-semibold mb-1">Throttle</h3>
-            <div class="flex">
-              <div class="flex items-center mb-2">
-                <label for="throttleMin" class="text-white p-2">Min:</label>
-                <input
-                  type="number"
-                  id="throttleMin"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+          <div class="">
+            <h3 class="text-white font-semibold mb-2">Throttle</h3>
+
+            <div class="flex gap-4">
+              <!-- Min -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="throttleMin"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="throttleMin"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Min</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Minimum Value for Throttle
+                </p>
               </div>
-              <div class="flex items-center mb-2">
-                <label for="throttleMax" class="text-white p-2">Max:</label>
-                <input
-                  type="number"
-                  id="throttleMax"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+
+              <!-- Max -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="throttleMax"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="throttleMax"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Max</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Maximum Value for Throttle
+                </p>
+              </div>
+
+              <!-- Smoothing -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="alphaThrottle"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="alphaThrottle"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Smoothing</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  alphaValue for Smoothening the Throttle Curve (0-0,2),
+                  Standard = 0,15
+                </p>
               </div>
             </div>
           </div>
 
           <!-- Brake -->
-          <div class="brake mb-4">
-            <h3 class="text-white font-semibold mb-1">Brake</h3>
-            <div class="flex">
-              <div class="flex items-center mb-2">
-                <label for="brakeMin" class="text-white p-2">Min:</label>
-                <input
-                  type="number"
-                  id="brakeMin"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+          <div class="">
+            <h3 class="text-white font-semibold mb-2">Brake</h3>
+
+            <div class="flex gap-4">
+              <!-- Min -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="brakeMin"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="brakeMin"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Min</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Minimum Value for Brake
+                </p>
               </div>
-              <div class="flex items-center mb-2">
-                <label for="brakeMax" class="text-white p-2">Max:</label>
-                <input
-                  type="number"
-                  id="brakeMax"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+
+              <!-- Max -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="brakeMax"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="brakeMax"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Max</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Maximum Value for Brake
+                </p>
+              </div>
+
+              <!-- Smoothing -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="alphaBrake"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="alphaBrake"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Smoothing</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  alphaValue for Smoothening the Brake Curve (0-0.2), Standard =
+                  0,05
+                </p>
               </div>
             </div>
           </div>
 
           <!-- Clutch -->
-          <div class="clutch mb-4">
-            <h3 class="text-white font-semibold mb-1">Clutch</h3>
-            <div class="flex">
-              <div class="flex items-center mb-2">
-                <label for="clutchMin" class="text-white p-2">Min:</label>
-                <input
-                  type="number"
-                  id="clutchMin"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+          <div class="">
+            <h3 class="text-white font-semibold mb-2">Clutch</h3>
+
+            <div class="flex gap-4">
+              <!-- Min -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="clutchMin"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="clutchMin"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Min</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Minimum Value for Clutch
+                </p>
               </div>
-              <div class="flex items-center mb-2">
-                <label for="clutchMax" class="text-white p-2">Max:</label>
-                <input
-                  type="number"
-                  id="clutchMax"
-                  class="w-32 mr-2 border rounded px-1"
-                />
+
+              <!-- Max -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="clutchMax"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="clutchMax"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Max</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  Maximum Value for Clutch
+                </p>
+              </div>
+
+              <!-- Smoothing -->
+              <div class="flex-1">
+                <div class="relative">
+                  <input
+                    type="number"
+                    id="alphaClutch"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    placeholder=" "
+                    class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                  />
+                  <label
+                    for="alphaClutch"
+                    class="absolute text-sm text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-4 scale-75 top-4 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-4"
+                    >Smoothing</label
+                  >
+                </div>
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                  alphaValue for Smoothening the Clutch Curve (0-0.2), Standard
+                  = 0,10
+                </p>
               </div>
             </div>
           </div>
 
           <!-- Deadzone -->
-          <div class="deadzone mb-4">
+          <div class="mb-4">
             <h3 class="text-white font-semibold mb-1">Deadzone</h3>
-            <div class="flex items-center mb-2">
-              <label for="deadzone" class="text-white w-32">Deadzone:</label>
+            <div class="relative w-32">
               <input
                 type="number"
                 id="deadzone"
-                class="mr-2 border rounded px-1"
+                placeholder=" "
+                class="block rounded-t-lg px-2.5 pb-1.5 pt-2.5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
               />
+              <label
+                for="deadzone"
+                class="absolute text-xs text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-2 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3"
+                >Deadzone</label
+              >
             </div>
           </div>
 
           <!-- Pins -->
-          <div class="pins mb-4">
+          <div class="mb-4">
             <h3 class="text-white font-semibold mb-1">Pins</h3>
-            <div class="flex items-center mb-2">
-              <label for="pinClutch" class="text-white w-32">Clutch Pin:</label>
-              <input
-                type="number"
-                id="pinClutch"
-                class="mr-2 border rounded px-1"
-              />
-            </div>
-            <div class="flex items-center mb-2">
-              <label for="pinThrottle" class="text-white w-32"
-                >Throttle Pin:</label
-              >
-              <input
-                type="number"
-                id="pinThrottle"
-                class="mr-2 border rounded px-1"
-              />
-            </div>
-            <div class="flex items-center mb-2">
-              <label for="DT_PIN" class="text-white w-32">DT Pin:</label>
-              <input
-                type="number"
-                id="DT_PIN"
-                class="mr-2 border rounded px-1"
-              />
-            </div>
-            <div class="flex items-center mb-2">
-              <label for="SCK_PIN" class="text-white w-32">SCK Pin:</label>
-              <input
-                type="number"
-                id="SCK_PIN"
-                class="mr-2 border rounded px-1"
-              />
+            <div class="flex gap-4">
+              <!-- Throttle Pin -->
+              <div class="relative w-32">
+                <input
+                  type="number"
+                  id="pinThrottle"
+                  placeholder=" "
+                  class="block rounded-t-lg px-2.5 pb-1.5 pt-2.5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                />
+                <label
+                  for="pinThrottle"
+                  class="absolute text-xs text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-2 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3"
+                  >Throttle Pin</label
+                >
+              </div>
+
+              <!-- DT Pin -->
+              <div class="relative w-32">
+                <input
+                  type="number"
+                  id="DT_PIN"
+                  placeholder=" "
+                  class="block rounded-t-lg px-2.5 pb-1.5 pt-2.5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                />
+                <label
+                  for="DT_PIN"
+                  class="absolute text-xs text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-2 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3"
+                  >DT Pin</label
+                >
+              </div>
+
+              <!-- SCK Pin -->
+              <div class="relative w-32">
+                <input
+                  type="number"
+                  id="SCK_PIN"
+                  placeholder=" "
+                  class="block rounded-t-lg px-2.5 pb-1.5 pt-2.5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                />
+                <label
+                  for="SCK_PIN"
+                  class="absolute text-xs text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-2 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3"
+                  >SCK Pin</label
+                >
+              </div>
+
+              <!-- Clutch Pin -->
+              <div class="relative w-32">
+                <input
+                  type="number"
+                  id="pinClutch"
+                  placeholder=" "
+                  class="block rounded-t-lg px-2.5 pb-1.5 pt-2.5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
+                />
+                <label
+                  for="pinClutch"
+                  class="absolute text-xs text-gray-500 dark:text-gray-400 duration-300 transform -translate-y-3 scale-75 top-2 z-10 origin-[0] start-2.5 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-3"
+                  >Clutch Pin</label
+                >
+              </div>
             </div>
           </div>
 
-          <!-- Neuer Button "Set All" ganz unten -->
-          <div class="flex justify-center mt-4">
+          <div class="justify-center mt-4">
             <button
               id="setAllBtn"
               class="py-2.5 px-5 text-sm font-medium text-gray-900 bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-blue-700"
@@ -183,7 +364,7 @@
         </div>
 
         <!-- Diagram + Raw Values -->
-        <div class="flex-1 bg-gray-600 p-4 rounded-lg shadow-lg">
+        <div class="w-2/5 bg-gray-600 p-4 rounded-lg shadow-lg">
           <canvas class="bg-gray-700 text-white" id="chart"></canvas>
           <div
             class="mt-4 bg-gray-700 p-2 rounded-lg flex-col justify-around text-white"
@@ -193,13 +374,13 @@
               <h3>Raw Values</h3>
             </div>
             <div class="flex justify-around">
-              <div>Clutch: <span id="clutchRaw">0</span></div>
               <div>Throttle: <span id="throttleRaw">0</span></div>
               <div>Brake: <span id="brakeRaw">0</span></div>
+              <div>Clutch: <span id="clutchRaw">0</span></div>
             </div>
           </div>
           <div
-            class="mt-4 bg-gray-800 p-2 rounded-lg overflow-auto max-h-40 text-white"
+            class="hidden mt-4 bg-gray-800 p-2 rounded-lg overflow-auto max-h-40 text-white"
             id="serialMonitor"
           >
             <h3 class="mb-2">Serial Monitor</h3>
@@ -275,6 +456,9 @@
             "pinThrottle",
             "DT_PIN",
             "SCK_PIN",
+            "alphaClutch",
+            "alphaThrottle",
+            "alphaBrake",
           ];
 
           fields.forEach((id) => {
@@ -291,7 +475,6 @@
           data: {
             labels: [],
             datasets: [
-              { label: "Clutch", data: [], borderColor: "red", fill: false },
               {
                 label: "Throttle",
                 data: [],
@@ -299,12 +482,15 @@
                 fill: false,
               },
               { label: "Brake", data: [], borderColor: "blue", fill: false },
+              { label: "Clutch", data: [], borderColor: "red", fill: false },
             ],
           },
           options: {
             animation: false,
             responsive: true,
-            plugins: { legend: { labels: { color: "white" } } },
+            plugins: {
+              legend: { labels: { color: "white" } },
+            },
             scales: {
               x: {
                 ticks: { color: "white" },
@@ -312,19 +498,28 @@
               },
               y: {
                 min: 0,
-                max: 1023,
-                ticks: { color: "white" },
+                max: 100,
+                ticks: {
+                  color: "white",
+                  stepSize: 20,
+                  callback: (v) => v + "%",
+                },
                 grid: { color: "rgba(255,255,255,0.2)" },
               },
             },
           },
         });
 
-        function addData(clutch, throttle, brake) {
+        function addData(throttle, brake, clutch) {
+          // Werte in Prozent umrechnen
+          const throttlePct = (throttle / 1023) * 100;
+          const brakePct = (brake / 1023) * 100;
+          const clutchPct = (clutch / 1023) * 100;
+
           chart.data.labels.push("");
-          chart.data.datasets[0].data.push(clutch);
-          chart.data.datasets[1].data.push(throttle);
-          chart.data.datasets[2].data.push(brake);
+          chart.data.datasets[0].data.push(throttlePct);
+          chart.data.datasets[1].data.push(brakePct);
+          chart.data.datasets[2].data.push(clutchPct);
 
           if (chart.data.labels.length > 100) {
             chart.data.labels.shift();
@@ -434,7 +629,7 @@
             }
 
             const values = line.split(",");
-            if (values.length === 11) {
+            if (values.length === 14) {
               const [
                 clutchMin,
                 clutchMax,
@@ -447,7 +642,10 @@
                 pinThrottle,
                 DT_PIN,
                 SCK_PIN,
-              ] = values.map((v) => parseInt(v));
+                alphaClutch,
+                alphaThrottle,
+                alphaBrake,
+              ] = values.map((v, i) => (i < 11 ? parseInt(v) : parseFloat(v)));
 
               document.getElementById("clutchMin").value = clutchMin;
               document.getElementById("clutchMax").value = clutchMax;
@@ -460,6 +658,12 @@
               document.getElementById("pinThrottle").value = pinThrottle;
               document.getElementById("DT_PIN").value = DT_PIN;
               document.getElementById("SCK_PIN").value = SCK_PIN;
+              document.getElementById("alphaClutch").value =
+                alphaClutch.toFixed(2);
+              document.getElementById("alphaThrottle").value =
+                alphaThrottle.toFixed(2);
+              document.getElementById("alphaBrake").value =
+                alphaBrake.toFixed(2);
             } else if (values.length === 6) {
               const [
                 clutchRaw,
