@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
@@ -108,8 +108,8 @@
                     type="number"
                     id="alphaThrottle"
                     step="0.01"
-                    min="0"
-                    max="1"
+                    min="0.01"
+                    max="0.2"
                     placeholder=" "
                     class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   />
@@ -123,6 +123,14 @@
                   alphaValue for Smoothening the Throttle Curve (0-0,2),
                   Standard = 0,15
                 </p>
+              </div>
+
+              <!-- Inverting-->
+              <div class="flex items-center mt-2">
+                <input id="invertThrottle" type="checkbox" class="mr-2" />
+                <label for="invertThrottle" class="text-white text-sm"
+                  >Invert</label
+                >
               </div>
             </div>
           </div>
@@ -179,8 +187,8 @@
                     type="number"
                     id="alphaBrake"
                     step="0.01"
-                    min="0"
-                    max="1"
+                    min="0.01"
+                    max="0.2"
                     placeholder=" "
                     class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   />
@@ -250,8 +258,8 @@
                     type="number"
                     id="alphaClutch"
                     step="0.01"
-                    min="0"
-                    max="1"
+                    min="0.01"
+                    max="0.2"
                     placeholder=" "
                     class="block rounded-t-lg px-2.5 pb-2.5 pt-5 w-full text-sm text-gray-900 bg-gray-50 dark:bg-gray-700 border-0 border-b-2 border-gray-300 appearance-none dark:text-white dark:border-gray-600 dark:focus:border-blue-500 focus:outline-none focus:ring-0 focus:border-blue-600 peer"
                   />
@@ -265,6 +273,14 @@
                   alphaValue for Smoothening the Clutch Curve (0-0.2), Standard
                   = 0,10
                 </p>
+              </div>
+
+              <!-- Inverting -->
+              <div class="flex items-center mt-2">
+                <input id="invertClutch" type="checkbox" class="mr-2" />
+                <label for="invertClutch" class="text-white text-sm"
+                  >Invert</label
+                >
               </div>
             </div>
           </div>
@@ -456,6 +472,8 @@
             "pinThrottle",
             "DT_PIN",
             "SCK_PIN",
+            "invertClutch",
+            "invertThrottle",
             "alphaClutch",
             "alphaThrottle",
             "alphaBrake",
@@ -463,7 +481,14 @@
 
           fields.forEach((id) => {
             const el = document.getElementById(id);
-            let value = el.value;
+            let value;
+
+            if (el.type === "checkbox") {
+              value = el.checked ? 1 : 0;
+            } else {
+              value = el.value;
+            }
+
             send(`SET ${id} ${value}`);
           });
         };
@@ -579,7 +604,7 @@
             calibrateBtn.textContent = "Calibrate";
             calibrateBtn.classList.remove(
               "bg-yellow-400",
-              "hover:bg-yellow-500"
+              "hover:bg-yellow-500",
             );
             calibrateBtn.classList.add("bg-white", "hover:bg-gray-100");
 
@@ -600,7 +625,7 @@
               "brakeMin",
               "brakeMax",
             ].forEach((id) =>
-              send(`SET ${id} ${document.getElementById(id).value}`)
+              send(`SET ${id} ${document.getElementById(id).value}`),
             );
 
             send("SAVE");
@@ -609,10 +634,11 @@
         };
 
         // ------------------- Serial Parsing -------------------
+        // ------------------- Serial Parsing -------------------
         function parseSerial(msg) {
           serialBuffer += msg;
           let lines = serialBuffer.split("\n");
-          serialBuffer = lines.pop();
+          serialBuffer = lines.pop(); // unvollständige Zeile behalten
 
           const serialContent = document.getElementById("serialContent");
 
@@ -620,16 +646,21 @@
             line = line.trim();
             if (!line) return;
 
+            // Serial Monitor Update
             const lineEl = document.createElement("div");
             lineEl.textContent = line;
             serialContent.insertBefore(lineEl, serialContent.firstChild);
-
             if (serialContent.children.length > 200) {
               serialContent.removeChild(serialContent.lastChild);
             }
 
             const values = line.split(",");
-            if (values.length === 14) {
+
+            // Config Zeile: 16 Werte
+            if (values.length === 16) {
+              const ints = values.slice(0, 13).map((v) => parseInt(v));
+              const floats = values.slice(13).map((v) => parseFloat(v));
+
               const [
                 clutchMin,
                 clutchMax,
@@ -642,11 +673,13 @@
                 pinThrottle,
                 DT_PIN,
                 SCK_PIN,
-                alphaClutch,
-                alphaThrottle,
-                alphaBrake,
-              ] = values.map((v, i) => (i < 11 ? parseInt(v) : parseFloat(v)));
+                invertClutch,
+                invertThrottle,
+              ] = ints;
 
+              const [alphaClutch, alphaThrottle, alphaBrake] = floats;
+
+              // Inputs updaten
               document.getElementById("clutchMin").value = clutchMin;
               document.getElementById("clutchMax").value = clutchMax;
               document.getElementById("throttleMin").value = throttleMin;
@@ -658,13 +691,18 @@
               document.getElementById("pinThrottle").value = pinThrottle;
               document.getElementById("DT_PIN").value = DT_PIN;
               document.getElementById("SCK_PIN").value = SCK_PIN;
+              document.getElementById("invertClutch").checked = !!invertClutch;
+              document.getElementById("invertThrottle").checked =
+                !!invertThrottle;
               document.getElementById("alphaClutch").value =
                 alphaClutch.toFixed(2);
               document.getElementById("alphaThrottle").value =
                 alphaThrottle.toFixed(2);
               document.getElementById("alphaBrake").value =
                 alphaBrake.toFixed(2);
-            } else if (values.length === 6) {
+            }
+            // Pedal-Rohwerte Zeile: 6 Werte
+            else if (values.length === 6) {
               const [
                 clutchRaw,
                 throttleRaw,
@@ -673,42 +711,35 @@
                 throttle,
                 brake,
               ] = values.map((v) => parseInt(v));
-              addData(clutch, throttle, brake);
+
+              // Chart aktualisieren
+              addData(throttle, brake, clutch);
+
+              // Raw Values aktualisieren
               document.getElementById("clutchRaw").textContent = clutchRaw;
               document.getElementById("throttleRaw").textContent = throttleRaw;
               document.getElementById("brakeRaw").textContent = brakeRaw;
 
+              // Kalibrierungsmodus
               if (calibrating) {
-                if (!isNaN(clutchRaw)) {
-                  calibData.clutchMin = Math.min(
-                    calibData.clutchMin,
-                    clutchRaw
-                  );
-                  calibData.clutchMax = Math.max(
-                    calibData.clutchMax,
-                    clutchRaw
-                  );
-                }
-                if (!isNaN(throttleRaw)) {
-                  calibData.throttleMin = Math.min(
-                    calibData.throttleMin,
-                    throttleRaw
-                  );
-                  calibData.throttleMax = Math.max(
-                    calibData.throttleMax,
-                    throttleRaw
-                  );
-                }
-                if (!isNaN(brakeRaw)) {
-                  calibData.brakeMin = Math.min(calibData.brakeMin, brakeRaw);
-                  calibData.brakeMax = Math.max(calibData.brakeMax, brakeRaw);
-                }
+                calibData.clutchMin = Math.min(calibData.clutchMin, clutchRaw);
+                calibData.clutchMax = Math.max(calibData.clutchMax, clutchRaw);
+                calibData.throttleMin = Math.min(
+                  calibData.throttleMin,
+                  throttleRaw,
+                );
+                calibData.throttleMax = Math.max(
+                  calibData.throttleMax,
+                  throttleRaw,
+                );
+                calibData.brakeMin = Math.min(calibData.brakeMin, brakeRaw);
+                calibData.brakeMax = Math.max(calibData.brakeMax, brakeRaw);
+
                 updateCalibStatus();
               }
             }
           });
         }
-
         // ------------------- Button Events -------------------
         connectBtn.onclick = connect;
         document.getElementById("loadBtn").onclick = () => send("LOAD");

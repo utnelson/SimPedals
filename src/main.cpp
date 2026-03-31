@@ -34,8 +34,10 @@ struct Config
   int16_t pinThrottle;
   int16_t DT_PIN;
   int16_t SCK_PIN;
+  bool invertClutch;
+  bool invertThrottle;
 
-  // 🔹 Glättungsfaktoren (0.0 ... 1.0)
+  // 🔹 Glättungsfaktoren (0.1 ... 2.0)
   float alphaClutch;
   float alphaThrottle;
   float alphaBrake;
@@ -51,9 +53,12 @@ Config defaultConfig = {
     A1,          // pinThrottle
     5,           // DT_PIN
     4,           // SCK_PIN
+    false,       // invertClutch
+    false,       // invertThrottle
     0.1f,        // alphaClutch
     0.15f,       // alphaThrottle
     0.05f        // alphaBrake
+
 };
 
 #define MAGIC_BYTE_ADDR 0
@@ -109,6 +114,10 @@ void printConfig()
   Serial.print(",");
   Serial.print(config.SCK_PIN);
   Serial.print(",");
+  Serial.print(config.invertClutch);
+  Serial.print(",");
+  Serial.print(config.invertThrottle);
+  Serial.print(",");
   Serial.print(config.alphaClutch, 3);
   Serial.print(",");
   Serial.print(config.alphaThrottle, 3);
@@ -144,102 +153,147 @@ void setup()
 
 void loop()
 {
-    unsigned long now = millis();
+  unsigned long now = millis();
 
-    // 🔹 Serielle Befehle
-    if (Serial.available())
+  // 🔹 Serielle Befehle
+  if (Serial.available())
+  {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+
+    if (cmd == "LOAD")
     {
-        String cmd = Serial.readStringUntil('\n');
-        cmd.trim();
-
-        if (cmd == "LOAD")
-        {
-            loadConfig();
-            scale.begin(config.DT_PIN, config.SCK_PIN);
-        }
-        else if (cmd == "SAVE")
-            saveConfig();
-        else if (cmd == "RESETCONFIG")
-        {
-            config = defaultConfig;
-            EEPROM.write(MAGIC_BYTE_ADDR, MAGIC_BYTE_VAL);
-            EEPROM.put(MAGIC_BYTE_ADDR + 1, config);
-            scale.begin(config.DT_PIN, config.SCK_PIN);
-            Serial.println("♻️ EEPROM auf DefaultConfig zurückgesetzt!");
-            printConfig();
-        }
-        else if (cmd.startsWith("SET"))
-        {
-            int sep = cmd.indexOf(' ', 4);
-            String key = cmd.substring(4, sep);
-            String valStr = cmd.substring(sep + 1);
-            long val = valStr.toInt();
-            float fval = valStr.toFloat();
-
-            if (key == "clutchMin") config.clutchMin = val;
-            else if (key == "clutchMax") config.clutchMax = val;
-            else if (key == "throttleMin") config.throttleMin = val;
-            else if (key == "throttleMax") config.throttleMax = val;
-            else if (key == "brakeMin") config.brakeMin = val;
-            else if (key == "brakeMax") config.brakeMax = val;
-            else if (key == "deadzone") config.deadzone = val;
-            else if (key == "pinClutch") config.pinClutch = val;
-            else if (key == "pinThrottle") config.pinThrottle = val;
-            else if (key == "DT_PIN") { config.DT_PIN = val; scale.begin(config.DT_PIN, config.SCK_PIN); }
-            else if (key == "SCK_PIN") { config.SCK_PIN = val; scale.begin(config.DT_PIN, config.SCK_PIN); }
-            else if (key == "alphaClutch") config.alphaClutch = fval;
-            else if (key == "alphaThrottle") config.alphaThrottle = fval;
-            else if (key == "alphaBrake") config.alphaBrake = fval;
-
-            Serial.print("✅ "); Serial.print(key); Serial.print(" = "); Serial.println(valStr);
-        }
+      loadConfig();
+      scale.begin(config.DT_PIN, config.SCK_PIN);
     }
-
-    // 🔹 HX711 alle 20ms lesen (non-blocking)
-    if (now - lastHX711 > 20)
+    else if (cmd == "SAVE")
+      saveConfig();
+    else if (cmd == "RESETCONFIG")
     {
-        lastHX711 = now;
-        if (scale.is_ready())
-            brakeRaw = scale.read();
+      config = defaultConfig;
+      EEPROM.write(MAGIC_BYTE_ADDR, MAGIC_BYTE_VAL);
+      EEPROM.put(MAGIC_BYTE_ADDR + 1, config);
+      scale.begin(config.DT_PIN, config.SCK_PIN);
+      Serial.println("♻️ EEPROM auf DefaultConfig zurückgesetzt!");
+      printConfig();
     }
-
-    // 🔹 Rohwerte einlesen
-    int clutchRaw = analogRead(config.pinClutch);
-    int throttleRaw = analogRead(config.pinThrottle);
-
-    int clutch = map(constrain(clutchRaw, config.clutchMin, config.clutchMax), config.clutchMin, config.clutchMax, 0, 1023);
-    int throttle = map(constrain(throttleRaw, config.throttleMin, config.throttleMax), config.throttleMin, config.throttleMax, 0, 1023);
-    int brake = map(constrain(brakeRaw, config.brakeMin, config.brakeMax), config.brakeMin, config.brakeMax, 0, 1023);
-
-    // 🔹 Filter initialisieren, falls noch 0
-    if (clutchFiltered == 0) clutchFiltered = clutch;
-    if (throttleFiltered == 0) throttleFiltered = throttle;
-    if (brakeFiltered == 0) brakeFiltered = brake;
-
-    // 🔹 Exponentielle Glättung
-    clutchFiltered   = config.alphaClutch   * clutch   + (1 - config.alphaClutch)   * clutchFiltered;
-    throttleFiltered = config.alphaThrottle * throttle + (1 - config.alphaThrottle) * throttleFiltered;
-    brakeFiltered    = config.alphaBrake    * brake    + (1 - config.alphaBrake)    * brakeFiltered;
-
-    // 🔹 Deadzone nach Filterung anwenden
-    clutchFiltered   = applyDeadzone(clutchFiltered, 0, config.deadzone);
-    throttleFiltered = applyDeadzone(throttleFiltered, 0, config.deadzone);
-    brakeFiltered    = applyDeadzone(brakeFiltered, 0, config.deadzone);
-
-    // 🔹 An Joystick senden
-    Joystick.setAccelerator((int)clutchFiltered);
-    Joystick.setThrottle((int)throttleFiltered);
-    Joystick.setBrake((int)brakeFiltered);
-
-    // 🔹 Serial-Ausgabe alle 20ms
-    if (now - lastPrint > 20)
+    else if (cmd.startsWith("SET"))
     {
-        lastPrint = now;
-        Serial.print(clutchRaw); Serial.print(',');
-        Serial.print(throttleRaw); Serial.print(',');
-        Serial.print(brakeRaw); Serial.print(',');
-        Serial.print((int)clutchFiltered); Serial.print(',');
-        Serial.print((int)throttleFiltered); Serial.print(',');
-        Serial.println((int)brakeFiltered);
+      int sep = cmd.indexOf(' ', 4);
+      String key = cmd.substring(4, sep);
+      String valStr = cmd.substring(sep + 1);
+      long val = valStr.toInt();
+      float fval = valStr.toFloat();
+
+      if (key == "clutchMin")
+        config.clutchMin = val;
+      else if (key == "clutchMax")
+        config.clutchMax = val;
+      else if (key == "throttleMin")
+        config.throttleMin = val;
+      else if (key == "throttleMax")
+        config.throttleMax = val;
+      else if (key == "brakeMin")
+        config.brakeMin = val;
+      else if (key == "brakeMax")
+        config.brakeMax = val;
+      else if (key == "deadzone")
+        config.deadzone = val;
+      else if (key == "pinClutch")
+        config.pinClutch = val;
+      else if (key == "pinThrottle")
+        config.pinThrottle = val;
+      else if (key == "DT_PIN")
+      {
+        config.DT_PIN = val;
+        scale.begin(config.DT_PIN, config.SCK_PIN);
+      }
+      else if (key == "SCK_PIN")
+      {
+        config.SCK_PIN = val;
+        scale.begin(config.DT_PIN, config.SCK_PIN);
+      }
+      else if (key == "invertClutch")
+        config.invertClutch = (val != 0);
+      else if (key == "invertThrottle")
+        config.invertThrottle = (val != 0);
+      else if (key == "alphaClutch")
+        config.alphaClutch = fval;
+      else if (key == "alphaThrottle")
+        config.alphaThrottle = fval;
+      else if (key == "alphaBrake")
+        config.alphaBrake = fval;
+
+      Serial.print("✅ ");
+      Serial.print(key);
+      Serial.print(" = ");
+      Serial.println(valStr);
     }
+  }
+
+  // 🔹 HX711 alle 20ms lesen (non-blocking)
+  if (now - lastHX711 > 20)
+  {
+    lastHX711 = now;
+    if (scale.is_ready())
+      brakeRaw = scale.read();
+  }
+
+  // 🔹 Rohwerte einlesen
+  int clutchRaw = analogRead(config.pinClutch);
+  int throttleRaw = analogRead(config.pinThrottle);
+
+  int clutch = map(
+      constrain(clutchRaw, config.clutchMin, config.clutchMax),
+      config.clutchMin,
+      config.clutchMax,
+      config.invertClutch ? 1023 : 0,
+      config.invertClutch ? 0 : 1023);
+  int throttle = map(
+      constrain(throttleRaw, config.throttleMin, config.throttleMax),
+      config.throttleMin,
+      config.throttleMax,
+      config.invertThrottle ? 1023 : 0,
+      config.invertThrottle ? 0 : 1023);
+  int brake = map(constrain(brakeRaw, config.brakeMin, config.brakeMax), config.brakeMin, config.brakeMax, 0, 1023);
+
+  // 🔹 Filter initialisieren, falls noch 0
+  if (clutchFiltered == 0)
+    clutchFiltered = clutch;
+  if (throttleFiltered == 0)
+    throttleFiltered = throttle;
+  if (brakeFiltered == 0)
+    brakeFiltered = brake;
+
+  // 🔹 Exponentielle Glättung
+  clutchFiltered = config.alphaClutch * clutch + (1 - config.alphaClutch) * clutchFiltered;
+  throttleFiltered = config.alphaThrottle * throttle + (1 - config.alphaThrottle) * throttleFiltered;
+  brakeFiltered = config.alphaBrake * brake + (1 - config.alphaBrake) * brakeFiltered;
+
+  // 🔹 Deadzone nach Filterung anwenden
+  clutchFiltered = applyDeadzone(clutchFiltered, 0, config.deadzone);
+  throttleFiltered = applyDeadzone(throttleFiltered, 0, config.deadzone);
+  brakeFiltered = applyDeadzone(brakeFiltered, 0, config.deadzone);
+
+  // 🔹 An Joystick senden
+  Joystick.setAccelerator((int)clutchFiltered);
+  Joystick.setThrottle((int)throttleFiltered);
+  Joystick.setBrake((int)brakeFiltered);
+
+  // 🔹 Serial-Ausgabe alle 20ms
+  if (now - lastPrint > 20)
+  {
+    lastPrint = now;
+    Serial.print(clutchRaw);
+    Serial.print(',');
+    Serial.print(throttleRaw);
+    Serial.print(',');
+    Serial.print(brakeRaw);
+    Serial.print(',');
+    Serial.print((int)clutchFiltered);
+    Serial.print(',');
+    Serial.print((int)throttleFiltered);
+    Serial.print(',');
+    Serial.println((int)brakeFiltered);
+  }
 }
